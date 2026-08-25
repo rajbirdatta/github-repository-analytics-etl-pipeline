@@ -241,6 +241,7 @@ Repository name search
 A reset button is also provided to restore the default filters.
 
 🖼️ Dashboard Screenshots
+
 Dashboard Overview
 ![Dashboard Overview](docs/screenshots/dashboard-overview.png)
 
