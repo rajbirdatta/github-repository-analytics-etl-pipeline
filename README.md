@@ -48,6 +48,17 @@ flowchart LR
     PENDING -.->|"Atomic os.replace()"| COMMITTED
     DIM_R & DIM_L & FACT --> DASH
 ```
+---
+
+## Pipeline & Dashboard Preview
+
+### Apache Airflow 3 Orchestration (7-Task DAG)
+![Airflow 7-Task DAG](docs/screenshots/airflow-dag-graph.png)
+
+### Streamlit Analytics Dashboard
+![Dashboard Overview](docs/screenshots/dashboard-overview.png)
+![Repository Analysis](docs/screenshots/repository-analysis.png)
+![Repository Tables](docs/screenshots/repository-tables.png)
 
 ---
 
