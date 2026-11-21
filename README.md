@@ -46,8 +46,8 @@ flowchart LR
     T4 --> T5 --> DIM_R & DIM_L & FACT
     T5 --> T6 --> T7
     PENDING -.->|"Atomic os.replace()"| COMMITTED
-    DIM_R & DIM_L & FACT --> DASH```
-
+    DIM_R & DIM_L & FACT --> DASH
+    ```
    ---
 
 ## Key Engineering Highlights
