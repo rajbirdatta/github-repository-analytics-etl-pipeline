@@ -1,0 +1,10 @@
+{
+  "username": "microsoft",
+  "mode": "incremental",
+  "watermark": "2026-11-21T12:00:50.876693+00:00",
+  "previous_watermark": "2026-11-21T11:56:52.085693+00:00",
+  "overlap_hours": 24,
+  "extracted_at": "2026-11-21T12:00:57.247094+00:00",
+  "record_count": 325,
+  "unique_repository_count": 325
+}

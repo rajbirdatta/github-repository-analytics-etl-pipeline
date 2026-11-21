@@ -24,3 +24,10 @@ Thumbs.db
 
 # Jupyter
 .ipynb_checkpoints/
+
+# AIRFLOW
+airflow.env
+airflow-logs/
+airflow-config/
+
+logs/

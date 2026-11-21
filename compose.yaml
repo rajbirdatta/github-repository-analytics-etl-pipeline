@@ -1,0 +1,180 @@
+
+services:
+  # --------------------------------------------------
+  # 1. PostgreSQL database
+  # --------------------------------------------------
+  db:
+    image: postgres:18
+    container_name: github-etl-db
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+
+    ports:
+      - "5433:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  # --------------------------------------------------
+  # 2. Existing ETL pipeline
+  # --------------------------------------------------
+  etl:
+    build: .
+    image: github-repo-etl:latest
+
+    env_file:
+      - .env
+
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+
+    volumes:
+      - ./data:/app/data
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    command: ["python", "-m", "scripts.run_pipeline"]
+
+
+  # --------------------------------------------------
+  # 3. Airflow database initialization
+  # --------------------------------------------------
+  airflow-init:
+    build:
+      context: .
+      dockerfile: Dockerfile.airflow
+    image: github-airflow:3.3.1
+
+    env_file:
+      - airflow.env
+
+    environment:
+      AIRFLOW__CORE__PARALLELISM: "2"
+
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./airflow-logs:/opt/airflow/logs
+      - ./airflow-config:/opt/airflow/config
+      - ./airflow-plugins:/opt/airflow/plugins
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - airflow db migrate
+
+
+  # --------------------------------------------------
+  # 4. Airflow API server
+  # --------------------------------------------------
+  airflow-apiserver:
+    image: github-airflow:3.3.1
+    restart: unless-stopped
+
+    env_file:
+      - airflow.env
+
+    environment:
+      AIRFLOW__CORE__PARALLELISM: "2"
+
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./airflow-logs:/opt/airflow/logs
+      - ./airflow-config:/opt/airflow/config
+      - ./airflow-plugins:/opt/airflow/plugins
+
+    ports:
+      - "8080:8080"
+
+    command: api-server
+
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+
+
+  # --------------------------------------------------
+  # 5. Airflow scheduler
+  # --------------------------------------------------
+  airflow-scheduler:
+    image: github-airflow:3.3.1
+    restart: unless-stopped
+
+    env_file:
+      - airflow.env
+      - .env
+
+    environment:
+      AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://airflow-apiserver:8080/execution/
+      AIRFLOW__CORE__PARALLELISM: "2"
+
+      # Docker PostgreSQL connection for ETL scripts
+      DB_HOST: db
+      DB_PORT: "5432"
+
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./airflow-logs:/opt/airflow/logs
+      - ./airflow-config:/opt/airflow/config
+      - ./airflow-plugins:/opt/airflow/plugins
+
+      # Project files required by ETL tasks
+      - ./scripts:/opt/airflow/project/scripts
+      - ./data:/opt/airflow/project/data
+      - ./sql:/opt/airflow/project/sql
+
+    command: scheduler
+
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+
+
+  # --------------------------------------------------
+  # 6. Airflow DAG processor
+  # --------------------------------------------------
+  airflow-dag-processor:
+    image: github-airflow:3.3.1
+    restart: unless-stopped
+
+    env_file:
+      - airflow.env
+
+    environment:
+      AIRFLOW__CORE__PARALLELISM: "2"
+
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./airflow-logs:/opt/airflow/logs
+      - ./airflow-config:/opt/airflow/config
+      - ./airflow-plugins:/opt/airflow/plugins
+
+    command: dag-processor
+
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+
+
+# --------------------------------------------------
+# Persistent Docker volumes
+# --------------------------------------------------
+volumes:
+  postgres_data:
