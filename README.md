@@ -46,10 +46,10 @@ flowchart LR
     T4 --> T5 --> DIM_R & DIM_L & FACT
     T5 --> T6 --> T7
     PENDING -.->|"Atomic os.replace()"| COMMITTED
-    DIM_R & DIM_L & FACT --> DASH```
+    DIM_R & DIM_L & FACT --> DASH
+```
 
-    
-   ---
+---
 
 ## Key Engineering Highlights
 
@@ -97,31 +97,35 @@ flowchart LR
 ├── Dockerfile                               # ETL pipeline container image
 ├── Dockerfile.airflow                       # Custom Airflow 3.3.1 image
 ├── pytest.ini                               # Pytest path configuration
-└── requirements.txt                         # Python dependencies```
+└── requirements.txt                         # Python dependencies
+```
 
-##  Quick Start
+---
 
-1. Configure Environment Variables
-Create a .env file in the project root and paste the following:
+## Quick Start
+
+### 1. Configure Environment Variables
+Create a `.env` file in the project root:
+```env
 GITHUB_USERNAME=microsoft
-GITHUB_TOKEN=your_github_token
+GITHUB_TOKEN=your_github_pat_optional
 
 DB_HOST=localhost
 DB_PORT=5433
 DB_NAME=github_analytics
 DB_USER=postgres
 DB_PASSWORD=postgres
+```
 
-2. Start Services with Docker Compose
-write this on the terminal:
+### 2. Start Services with Docker Compose
+```bash
 docker compose up -d --build
+```
+* **Airflow UI:** `http://localhost:8080`
+* **PostgreSQL:** `localhost:5433`
 
-##Airflow UI: http://localhost:8080
-
-##PostgreSQL: localhost:5433
-
-3.Run Locally or Execute Tests:
-
+### 3. Run Locally or Execute Tests
+```bash
 # Run full pipeline locally
 python -m scripts.run_pipeline
 
@@ -130,3 +134,4 @@ pytest
 
 # Launch Streamlit dashboard
 streamlit run dashboard/app.py
+```
